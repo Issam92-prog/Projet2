@@ -11,9 +11,9 @@
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>user-service</artifactId>
-    <name>user-service</name>
-    <description>Service des utilisateurs (Kotlin)</description>
+    <artifactId>editor-service</artifactId>
+    <name>editor-service</name>
+    <description>Service de l'éditeur (Kotlin)</description>
 
     <dependencies>
         <!-- Spring Boot Starters -->
