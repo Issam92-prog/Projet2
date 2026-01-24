@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Parent Spring Boot -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.2</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.projet2</groupId>
+    <artifactId>projet2</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+    <name>projet2</name>
+    <description>Plateforme de gestion de flux d'événements de jeux vidéo</description>
+
+    <!-- Modules -->
+    <modules>
+        <module>platform-service</module>
+        <module>editor-service</module>
+        <module>user-service</module>
+    </modules>
+
+    <!-- Properties -->
+    <properties>
+        <java.version>21</java.version>
+        <kotlin.version>2.1.0</kotlin.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <!-- Dependency Management (versions centralisées) -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- Avro -->
+            <dependency>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro</artifactId>
+                <version>1.12.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.confluent</groupId>
+                <artifactId>kafka-avro-serializer</artifactId>
+                <version>7.8.0</version>
+            </dependency>
+
+            <!-- OpenCSV (pour editor-service) -->
+            <dependency>
+                <groupId>com.opencsv</groupId>
+                <artifactId>opencsv</artifactId>
+                <version>5.9</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- Repositories -->
+    <repositories>
+        <repository>
+            <id>confluent</id>
+            <name>Confluent Maven Repository</name>
+            <url>https://packages.confluent.io/maven/</url>
+        </repository>
+    </repositories>
+
+</project>

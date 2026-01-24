@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  # ========== POSTGRESQL - Platform Service ==========
+  platform-db:
+    image: postgres:16
+    container_name: platform-db
+    environment:
+      POSTGRES_DB: platform_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - platform-data:/var/lib/postgresql/data
+    networks:
+      - projet2-network
+
+  # ========== POSTGRESQL - Editor Service ==========
+  editor-db:
+    image: postgres:16
+    container_name: editor-db
+    environment:
+      POSTGRES_DB: editor_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - editor-data:/var/lib/postgresql/data
+    networks:
+      - projet2-network
+
+  # ========== POSTGRESQL - User Service ==========
+  user-db:
+    image: postgres:16
+    container_name: user-db
+    environment:
+      POSTGRES_DB: user_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    volumes:
+      - user-data:/var/lib/postgresql/data
+    networks:
+      - projet2-network
+
+  # ========== ZOOKEEPER (pour Kafka) ==========
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - projet2-network
+
+  # ========== KAFKA ==========
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports:
+      - "9092:9092"
+    networks:
+      - projet2-network
+
+  # ========== SCHEMA REGISTRY (pour Avro) ==========
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.0
+    container_name: schema-registry
+    depends_on:
+      - kafka
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    ports:
+      - "8081:8081"
+    networks:
+      - projet2-network
+# ========== VOLUMES (persistance des données) ==========
+volumes:
+  platform-data:
+  editor-data:
+  user-data:
+
+# ========== NETWORK ==========
+networks:
+  projet2-network:
+    driver: bridge
