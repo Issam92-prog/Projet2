@@ -47,6 +47,12 @@
             <artifactId>kafka-avro-serializer</artifactId>
         </dependency>
 
+        <!-- ✅ AJOUT : OpenCSV pour importer vgsales.csv -->
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+        </dependency>
+
         <!-- Kotlin -->
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
@@ -112,6 +118,18 @@
                         <version>${kotlin.version}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+
+            <!-- ✅ AJOUT : Plugin Avro pour générer les classes depuis les schémas -->
+            <plugin>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- ✅ AJOUT : Build Helper pour ajouter les sources générées au classpath -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
             </plugin>
 
             <!-- Skip tests -->

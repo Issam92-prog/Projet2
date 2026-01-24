@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "CrashReport",
+  "namespace": "com.projet.events",
+  "fields": [
+    {"name": "gameId", "type": "string"},
+    {"name": "gameName", "type": "string"},
+    {"name": "platform", "type": "string"},
+    {"name": "errorMessage", "type": "string"},
+    {"name": "stackTrace", "type": "string"},
+    {"name": "timestamp", "type": "long", "logicalType": "timestamp-millis"}
+  ]
+}

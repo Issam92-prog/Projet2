@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "GamePurchased",
+  "namespace": "com.projet.events",
+  "fields": [
+    {"name": "userId", "type": "string"},
+    {"name": "gameId", "type": "string"},
+    {"name": "gameName", "type": "string"},
+    {"name": "purchasedAt", "type": "long", "logicalType": "timestamp-millis"}
+  ]
+}

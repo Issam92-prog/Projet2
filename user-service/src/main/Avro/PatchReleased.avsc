@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "PatchReleased",
+  "namespace": "com.projet.events",
+  "fields": [
+    {"name": "gameId", "type": "string"},
+    {"name": "gameName", "type": "string"},
+    {"name": "newVersion", "type": "string"},
+    {"name": "changes", "type": {"type": "array", "items": "string"}},
+    {"name": "releasedAt", "type": "long", "logicalType": "timestamp-millis"}
+  ]
+}
