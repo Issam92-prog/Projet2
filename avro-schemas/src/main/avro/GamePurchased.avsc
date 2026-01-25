@@ -1,11 +1,45 @@
 {
   "type": "record",
   "name": "GamePurchased",
-  "namespace": "com.projet2.events",
+  "namespace": "com.projet.events",
   "fields": [
-    {"name": "userId", "type": "string"},
-    {"name": "gameId", "type": "string"},
-    {"name": "gameName", "type": "string"},
-    {"name": "purchasedAt", "type": "long", "logicalType": "timestamp-millis"}
+    {
+      "name": "purchaseId",
+      "type": "string",
+      "doc": "Identifiant unique de l'achat"
+    },
+    {
+      "name": "userId",
+      "type": "string",
+      "doc": "Identifiant de l'utilisateur"
+    },
+    {
+      "name": "gameId",
+      "type": "string",
+      "doc": "Identifiant du jeu acheté"
+    },
+    {
+      "name": "gameName",
+      "type": "string",
+      "doc": "Nom du jeu"
+    },
+    {
+      "name": "platform",
+      "type": "string",
+      "doc": "Plateforme pour laquelle le jeu est acheté (PC, PS5, etc.)"
+    },
+    {
+      "name": "purchasePrice",
+      "type": "double",
+      "doc": "Prix d'achat en euros"
+    },
+    {
+      "name": "purchasedAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Date et heure de l'achat"
+    }
   ]
 }
