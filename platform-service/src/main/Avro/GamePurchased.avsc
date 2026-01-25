@@ -6,6 +6,6 @@
     {"name": "userId", "type": "string"},
     {"name": "gameId", "type": "string"},
     {"name": "gameName", "type": "string"},
-    {"name": "purchasedAt", "type": "long", "logicalType": "timestamp-millis"}
+    {"name": "purchasedAt", "type": {"type": "long", "logicalType": "timestamp-millis"}}
   ]
 }

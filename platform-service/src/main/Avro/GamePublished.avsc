@@ -9,6 +9,6 @@
     {"name": "genre", "type": {"type": "array", "items": "string"}},
     {"name": "version", "type": "string"},
     {"name": "publisherName", "type": "string"},
-    {"name": "publishedAt", "type": "long", "logicalType": "timestamp-millis"}
+    {"name": "publishedAt", "type": {"type": "long", "logicalType": "timestamp-millis"}}
   ]
 }

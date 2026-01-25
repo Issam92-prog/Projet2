@@ -8,6 +8,6 @@
     {"name": "platform", "type": "string"},
     {"name": "errorMessage", "type": "string"},
     {"name": "stackTrace", "type": "string"},
-    {"name": "timestamp", "type": "long", "logicalType": "timestamp-millis"}
+    {"name": "timestamp", "type": {"type": "long", "logicalType": "timestamp-millis"}}
   ]
 }

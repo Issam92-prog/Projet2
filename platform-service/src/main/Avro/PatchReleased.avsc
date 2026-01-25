@@ -7,6 +7,6 @@
     {"name": "gameName", "type": "string"},
     {"name": "newVersion", "type": "string"},
     {"name": "changes", "type": {"type": "array", "items": "string"}},
-    {"name": "releasedAt", "type": "long", "logicalType": "timestamp-millis"}
+    {"name": "releasedAt", "type": {"type": "long", "logicalType": "timestamp-millis"}}
   ]
 }

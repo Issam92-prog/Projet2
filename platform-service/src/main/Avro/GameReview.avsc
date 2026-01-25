@@ -8,6 +8,6 @@
     {"name": "gameName", "type": "string"},
     {"name": "rating", "type": "int"},
     {"name": "comment", "type": "string"},
-    {"name": "reviewedAt", "type": "long", "logicalType": "timestamp-millis"}
+    {"name": "reviewedAt", "type": {"type": "long", "logicalType": "timestamp-millis"}}
   ]
 }
