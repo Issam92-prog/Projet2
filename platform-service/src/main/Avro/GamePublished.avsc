@@ -3,12 +3,58 @@
   "name": "GamePublished",
   "namespace": "com.projet.events",
   "fields": [
-    {"name": "gameId", "type": "string"},
-    {"name": "gameName", "type": "string"},
-    {"name": "platform", "type": "string"},
-    {"name": "genre", "type": {"type": "array", "items": "string"}},
-    {"name": "version", "type": "string"},
-    {"name": "publisherName", "type": "string"},
-    {"name": "publishedAt", "type": {"type": "long", "logicalType": "timestamp-millis"}}
+    {
+      "name": "gameId",
+      "type": "string",
+      "doc": "Identifiant unique du jeu (UUID ou ID externe)"
+    },
+    {
+      "name": "gameName",
+      "type": "string",
+      "doc": "Titre du jeu"
+    },
+    {
+      "name": "platform",
+      "type": "string",
+      "doc": "Plateforme d'exécution (PC, PS5, Xbox, Switch, etc.)"
+    },
+    {
+      "name": "genre",
+      "type": {
+        "type": "array",
+        "items": "string"
+      },
+      "doc": "Liste des genres (Simulation, Stratégie, Action, Sports, etc.)"
+    },
+    {
+      "name": "version",
+      "type": "string",
+      "doc": "Version du jeu (ex: 1.0.0, 0.9.5)"
+    },
+    {
+      "name": "publisherName",
+      "type": "string",
+      "doc": "Nom de l'éditeur"
+    },
+    {
+      "name": "publisherId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "ID de l'éditeur (optionnel)"
+    },
+    {
+      "name": "isEarlyAccess",
+      "type": "boolean",
+      "default": false,
+      "doc": "true si version < 1.0 (accès anticipé)"
+    },
+    {
+      "name": "publishedAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Date de publication"
+    }
   ]
 }

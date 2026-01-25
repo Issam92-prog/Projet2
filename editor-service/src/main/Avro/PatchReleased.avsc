@@ -3,10 +3,76 @@
   "name": "PatchReleased",
   "namespace": "com.projet.events",
   "fields": [
-    {"name": "gameId", "type": "string"},
-    {"name": "gameName", "type": "string"},
-    {"name": "newVersion", "type": "string"},
-    {"name": "changes", "type": {"type": "array", "items": "string"}},
-    {"name": "releasedAt", "type": "long", "logicalType": "timestamp-millis"}
+    {
+      "name": "patchId",
+      "type": "string",
+      "doc": "Identifiant unique du patch"
+    },
+    {
+      "name": "gameId",
+      "type": "string",
+      "doc": "Identifiant du jeu concerné"
+    },
+    {
+      "name": "gameName",
+      "type": "string",
+      "doc": "Nom du jeu"
+    },
+    {
+      "name": "platform",
+      "type": "string",
+      "doc": "Plateforme concernée (PC, PS5, etc.)"
+    },
+    {
+      "name": "targetVersion",
+      "type": "string",
+      "doc": "S'applique aux versions antérieures à celle-ci (ex: 1.5.0)"
+    },
+    {
+      "name": "newVersion",
+      "type": "string",
+      "doc": "Nouvelle version après application du patch (ex: 1.5.2)"
+    },
+    {
+      "name": "publisherComment",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Commentaire de l'éditeur sur ce patch"
+    },
+    {
+      "name": "changes",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "PatchModification",
+          "fields": [
+            {
+              "name": "modificationType",
+              "type": {
+                "type": "enum",
+                "name": "ModificationType",
+                "symbols": ["CORRECTION", "AJOUT", "OPTIMISATION"]
+              },
+              "doc": "Type de modification"
+            },
+            {
+              "name": "description",
+              "type": "string",
+              "doc": "Description de la modification"
+            }
+          ]
+        }
+      },
+      "doc": "Liste des modifications apportées"
+    },
+    {
+      "name": "releasedAt",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Date de sortie du patch"
+    }
   ]
 }

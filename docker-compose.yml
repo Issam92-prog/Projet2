@@ -2,11 +2,11 @@ services:
   # ========== POSTGRESQL - Platform Service ==========
   platform-db:
     image: postgres:16
-    container_name: platform-db
+    container_name: platform_db
     environment:
-      POSTGRES_DB: platform_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: platform_db
     ports:
       - "5432:5432"
     volumes:
