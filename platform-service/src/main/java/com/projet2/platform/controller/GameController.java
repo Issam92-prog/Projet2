@@ -64,9 +64,9 @@ public class GameController {
      * GET /api/games/count
      * Compte le nombre total de jeux
      */
-    @GetMapping("/count")
-    public ResponseEntity<Long> countGames() {
+    @GetMapping(value = "/count", produces = "text/plain")
+    public ResponseEntity<String> countGames() {
         long count = gameService.getAllGames().size();
-        return ResponseEntity.ok(count);
+        return ResponseEntity.ok("Nombre de jeux :" + count+ "\n");
     }
 }
