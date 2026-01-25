@@ -3,49 +3,11 @@
   "name": "GameReview",
   "namespace": "com.projet2.events",
   "fields": [
-    {
-      "name": "reviewId",
-      "type": "string",
-      "doc": "Identifiant unique de l'évaluation"
-    },
-    {
-      "name": "userId",
-      "type": "string",
-      "doc": "Identifiant de l'utilisateur"
-    },
-    {
-      "name": "gameId",
-      "type": "string",
-      "doc": "Identifiant du jeu"
-    },
-    {
-      "name": "gameName",
-      "type": "string",
-      "doc": "Nom du jeu"
-    },
-    {
-      "name": "rating",
-      "type": "int",
-      "doc": "Note du jeu (ex: 0-100 ou 1-5)"
-    },
-    {
-      "name": "comment",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Commentaire optionnel de l'utilisateur"
-    },
-    {
-      "name": "playtimeHours",
-      "type": "double",
-      "doc": "Nombre d'heures jouées au moment de l'évaluation"
-    },
-    {
-      "name": "reviewedAt",
-      "type": {
-        "type": "long",
-        "logicalType": "timestamp-millis"
-      },
-      "doc": "Date de l'évaluation"
-    }
+    {"name": "userId", "type": "string"},
+    {"name": "gameId", "type": "string"},
+    {"name": "gameName", "type": "string"},
+    {"name": "rating", "type": "int"},
+    {"name": "comment", "type": "string"},
+    {"name": "reviewedAt", "type": "long", "logicalType": "timestamp-millis"}
   ]
 }

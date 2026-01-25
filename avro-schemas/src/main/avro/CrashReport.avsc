@@ -3,60 +3,11 @@
   "name": "CrashReport",
   "namespace": "com.projet2.events",
   "fields": [
-    {
-      "name": "reportId",
-      "type": "string",
-      "doc": "Identifiant unique du rapport"
-    },
-    {
-      "name": "gameId",
-      "type": "string",
-      "doc": "Identifiant du jeu"
-    },
-    {
-      "name": "gameName",
-      "type": "string",
-      "doc": "Nom du jeu"
-    },
-    {
-      "name": "gameVersion",
-      "type": "string",
-      "doc": "Version du jeu au moment du crash (ex: 1.2.3)"
-    },
-    {
-      "name": "platform",
-      "type": "string",
-      "doc": "Plateforme (PC, PS5, etc.)"
-    },
-    {
-      "name": "userId",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "ID de l'utilisateur ayant subi le crash (optionnel pour RGPD)"
-    },
-    {
-      "name": "errorType",
-      "type": ["null", "string"],
-      "default": null,
-      "doc": "Type d'erreur (NullPointerException, OutOfMemory, etc.)"
-    },
-    {
-      "name": "errorMessage",
-      "type": "string",
-      "doc": "Message d'erreur"
-    },
-    {
-      "name": "stackTrace",
-      "type": "string",
-      "doc": "Stack trace complète"
-    },
-    {
-      "name": "timestamp",
-      "type": {
-        "type": "long",
-        "logicalType": "timestamp-millis"
-      },
-      "doc": "Date et heure du crash"
-    }
+    {"name": "gameId", "type": "string"},
+    {"name": "gameName", "type": "string"},
+    {"name": "platform", "type": "string"},
+    {"name": "errorMessage", "type": "string"},
+    {"name": "stackTrace", "type": "string"},
+    {"name": "timestamp", "type": "long", "logicalType": "timestamp-millis"}
   ]
 }
