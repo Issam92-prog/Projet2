@@ -1,6 +1,6 @@
-package com.example.platform;
+package com.projet2.platform;
 
-import com.projet.events.GamePublished;
+import com.projet2.events.GamePublished;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 

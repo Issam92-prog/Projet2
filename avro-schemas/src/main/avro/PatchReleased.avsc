@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "PatchReleased",
-  "namespace": "com.projet.events",
+  "namespace": "com.projet2.events",
   "fields": [
     {"name": "gameId", "type": "string"},
     {"name": "gameName", "type": "string"},

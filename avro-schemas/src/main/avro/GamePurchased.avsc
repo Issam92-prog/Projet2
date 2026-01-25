@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "GamePurchased",
-  "namespace": "com.projet.events",
+  "namespace": "com.projet2.events",
   "fields": [
     {"name": "userId", "type": "string"},
     {"name": "gameId", "type": "string"},

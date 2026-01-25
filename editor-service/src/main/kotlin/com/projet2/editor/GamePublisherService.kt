@@ -1,7 +1,7 @@
-package com.example.editor
+package com.projet2.editor
 
 import com.opencsv.CSVReaderBuilder
-import com.projet.events.GamePublished
+import com.projet2.events.GamePublished
 import org.springframework.core.io.ClassPathResource
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service

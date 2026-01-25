@@ -1,10 +1,10 @@
-package com.example.editor
+package com.projet2.user
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-class EditorApplicationTests {
+class UserApplicationTests {
 
     @Test
     fun contextLoads() {

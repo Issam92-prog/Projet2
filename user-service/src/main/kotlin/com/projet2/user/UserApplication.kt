@@ -1,4 +1,4 @@
-package com.example.user
+package com.projet2.user
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

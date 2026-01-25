@@ -1,4 +1,4 @@
-package com.example.editor
+package com.projet2.editor
 
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
