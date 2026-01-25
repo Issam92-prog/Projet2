@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "GameReview",
-  "namespace": "com.projet.events",
+  "namespace": "com.projet2.events",
   "fields": [
     {
       "name": "reviewId",
