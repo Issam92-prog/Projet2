@@ -5,8 +5,23 @@
   "fields": [
     {"name": "gameId", "type": "string"},
     {"name": "gameName", "type": "string"},
+    {"name": "platform", "type": "string"},
     {"name": "newVersion", "type": "string"},
-    {"name": "changes", "type": {"type": "array", "items": "string"}},
+    {"name": "editorComment", "type": "string", "default": ""},
+
+    {"name": "changes", "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "PatchChange",
+          "fields": [
+            {"name": "type", "type": "string"},
+            {"name": "description", "type": "string"}
+          ]
+        }
+      }
+    },
+
     {"name": "releasedAt", "type": "long", "logicalType": "timestamp-millis"}
   ]
 }
