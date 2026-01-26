@@ -1,22 +1,20 @@
 package com.projet2.platform.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-/**
- * Entité représentant un jeu vidéo dans le catalogue de la plateforme
- * Correspond à la table 'video_games' et à l'événement Avro 'GamePublished'
- */
 @Entity
 @Table(name = "video_games")
-@Data
+@Data // Lombok génère Getters, Setters, toString, hashCode...
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -29,17 +27,20 @@ public class Game {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "platform", nullable = false)
-    private String platform;
-
     @Column(name = "publisher_name", nullable = false)
     private String publisherName;
 
     @Column(name = "publisher_id")
     private String publisherId;
 
-    @Column(name = "current_version", nullable = false)
-    private String currentVersion;
+    // COEUR DU SYSTEME MULTI PLATEFORME
+    // Permet d'avoir : PC -> 1.0, PS5 -> 1.2
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "game_versions", joinColumns = @JoinColumn(name = "game_id"))
+    @MapKeyColumn(name = "platform")
+    @Column(name = "version")
+    @Builder.Default
+    private Map<String, String> versions = new HashMap<>();
 
     @Column(name = "is_early_access")
     @Builder.Default
