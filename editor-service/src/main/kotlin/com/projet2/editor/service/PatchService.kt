@@ -64,11 +64,21 @@ class PatchService(
     }
 
     private fun publishPatchEvent(game: Game, patch: Patch) {
+        // Convertir List<String> en List<PatchChange>
+        val patchChanges = patch.changes.map { change ->
+            com.projet2.events.PatchChange.newBuilder()
+                .setType(patch.type.name)
+                .setDescription(change)
+                .build()
+        }
+
         val event = PatchReleased.newBuilder()
             .setGameId(game.gameId)
             .setGameName(game.name)
+            .setPlatform(game.platform)
             .setNewVersion(patch.newVersion)
-            .setChanges(patch.changes)
+            .setEditorComment(patch.description)
+            .setChanges(patchChanges)
             .setReleasedAt(patch.releasedAt.toEpochMilli())
             .build()
 
