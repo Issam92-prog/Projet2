@@ -3,9 +3,13 @@
   "name": "GamePurchased",
   "namespace": "com.projet2.events",
   "fields": [
-    {"name": "userId", "type": "string"},
     {"name": "gameId", "type": "string"},
     {"name": "gameName", "type": "string"},
+    {"name": "userId", "type": "string"},
+
+    {"name": "price", "type": "double", "doc": "Prix payé"},
+    {"name": "platform", "type": "string", "doc": "Plateforme choisie"},
+
     {"name": "purchasedAt", "type": "long", "logicalType": "timestamp-millis"}
   ]
 }
