@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="editor_db@localhost" uuid="6975e69b-79b6-4c41-8f9f-03b9cdbe7fb7">
+    <data-source source="LOCAL" name="editor_db@localhost" uuid="85146351-4433-4509-b4aa-dcf2f45bd6ab">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
+      <imported>true</imported>
+      <remarks>$PROJECT_DIR$/editor-service/src/main/resources/application.properties</remarks>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
       <jdbc-url>jdbc:postgresql://localhost:5433/editor_db</jdbc-url>
-      <jdbc-additional-properties>
-        <property name="com.intellij.clouds.kubernetes.db.host.port" />
-        <property name="com.intellij.clouds.kubernetes.db.enabled" value="false" />
-        <property name="com.intellij.clouds.kubernetes.db.container.port" />
-      </jdbc-additional-properties>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="user_db@localhost" uuid="fe4f6cef-4596-411d-8908-76b0883f7897">
+    <data-source source="LOCAL" name="user_db@localhost" uuid="da7a3f6b-f064-48dc-866f-9a595046c54a">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
+      <imported>true</imported>
+      <remarks>$PROJECT_DIR$/user-service/src/main/resources/application.properties</remarks>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
       <jdbc-url>jdbc:postgresql://localhost:5434/user_db</jdbc-url>
       <jdbc-additional-properties>
@@ -28,6 +27,8 @@
     <data-source source="LOCAL" name="platform_db@localhost" uuid="8dc6098e-3922-4c2a-9c2c-4b79a875fea0">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
+      <imported>true</imported>
+      <remarks>$PROJECT_DIR$/platform-service/src/main/resources/application.properties</remarks>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
       <jdbc-url>jdbc:postgresql://localhost:5432/platform_db</jdbc-url>
       <jdbc-additional-properties>

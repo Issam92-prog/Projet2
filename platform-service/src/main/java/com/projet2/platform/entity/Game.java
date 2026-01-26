@@ -72,7 +72,7 @@ public class Game {
 
     @Column(name = "is_early_access")
     @Builder.Default
-    private Boolean isEarlyAccess = false;
+    private Boolean isEarlyAccess = (Boolean) false;
 
     @ElementCollection
     @CollectionTable(name = "video_game_genres", joinColumns = @JoinColumn(name = "video_game_id"))
