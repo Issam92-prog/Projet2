@@ -1,5 +1,6 @@
 package com.projet2.platform;
 
+import com.projet2.platform.entity.GameEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

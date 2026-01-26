@@ -13,11 +13,11 @@
       </jdbc-additional-properties>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="platform_db@localhost" uuid="bc1ab692-41e2-4590-9408-973ec2ca9455">
+    <data-source source="LOCAL" name="user_db@localhost" uuid="fe4f6cef-4596-411d-8908-76b0883f7897">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://localhost:5432/platform_db</jdbc-url>
+      <jdbc-url>jdbc:postgresql://localhost:5434/user_db</jdbc-url>
       <jdbc-additional-properties>
         <property name="com.intellij.clouds.kubernetes.db.host.port" />
         <property name="com.intellij.clouds.kubernetes.db.enabled" value="false" />
@@ -25,11 +25,11 @@
       </jdbc-additional-properties>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="user_db@localhost" uuid="fe4f6cef-4596-411d-8908-76b0883f7897">
+    <data-source source="LOCAL" name="plarform_db@localhost" uuid="c7cc813f-c9c7-48ea-8e13-dfe5fec3bb1f">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://localhost:5434/user_db</jdbc-url>
+      <jdbc-url>jdbc:postgresql://localhost:5432/plarform_db</jdbc-url>
       <jdbc-additional-properties>
         <property name="com.intellij.clouds.kubernetes.db.host.port" />
         <property name="com.intellij.clouds.kubernetes.db.enabled" value="false" />
