@@ -14,7 +14,7 @@ import java.util.Map;
 
 @Entity
 @Table(name = "video_games")
-@Data // Lombok génère Getters, Setters, toString, hashCode...
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -30,13 +30,41 @@ public class Game {
     @Column(name = "publisher_name", nullable = false)
     private String publisherName;
 
-    @Column(name = "publisher_id")
-    private String publisherId;
+    // --- PRIX et DEMANDE et QUALITÉ ---
+    @Column(name = "base_price")
+    private Double basePrice;
 
-    // COEUR DU SYSTEME MULTI PLATEFORME
-    // Permet d'avoir : PC -> 1.0, PS5 -> 1.2
+    @Column(name = "current_price")
+    private Double currentPrice;
+
+    @Column(name = "sales_count")
+    @Builder.Default
+    private Long salesCount = 0L;
+
+    @Column(name = "average_rating")
+    @Builder.Default
+    private Double averageRating = 0.0;
+
+    @Column(name = "review_count")
+    @Builder.Default
+    private Long reviewCount = 0L;
+    // -------------------------------
+
+    // --- DLC ---
+    @Column(name = "is_dlc")
+    @Builder.Default
+    private Boolean isDlc = false;
+
+    // INDISPENSABLE : C'est le seul lien vers le jeu "père"
+    @Column(name = "parent_game_id")
+    private String parentGameId;
+
+    // --- VERSIONS PAR PLATEFORME ---
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "game_versions", joinColumns = @JoinColumn(name = "game_id"))
+    @CollectionTable(
+            name = "video_game_versions",
+            joinColumns = @JoinColumn(name = "video_game_id")
+    )
     @MapKeyColumn(name = "platform")
     @Column(name = "version")
     @Builder.Default

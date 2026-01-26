@@ -1,7 +1,9 @@
 package com.projet2.platform.service;
 
 import com.projet2.events.GamePublished;
+import com.projet2.events.GamePurchased;
 import com.projet2.platform.entity.Game;
+import com.projet2.platform.kafka.producer.GamePurchasedProducer;
 import com.projet2.platform.repository.GameRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,8 +23,13 @@ public class GameService {
 
     private static final Logger log = LoggerFactory.getLogger(GameService.class);
 
-    @Autowired
     private GameRepository gameRepository;
+    private final GamePurchasedProducer gamePurchasedProducer;
+
+    public GameService(GameRepository gameRepository, GamePurchasedProducer gamePurchasedProducer) {
+        this.gameRepository = gameRepository;
+        this.gamePurchasedProducer = gamePurchasedProducer;
+    }
 
     /**
      * Appelé quand un éditeur publie un nouveau jeu (GamePublishedConsumer).
@@ -45,6 +52,17 @@ public class GameService {
             }
             game.setCreatedAt(Instant.ofEpochMilli(event.getPublishedAt()));
             log.info("   ✨ Création d'un nouveau jeu");
+        }
+
+        if (event.getPrice() != null) {
+            game.setBasePrice(event.getPrice());
+            if (game.getCurrentPrice() == null) {
+                game.setCurrentPrice(event.getPrice());
+            }
+        } else {
+            // Valeur par défaut si l'event n'a pas de prix
+            game.setBasePrice(59.99);
+            game.setCurrentPrice(59.99);
         }
 
         // Mapping des champs simples
@@ -109,6 +127,106 @@ public class GameService {
         } else {
             log.warn("⚠️ PATCH OBSOLÈTE : Version reçue ({}) <= Version actuelle ({}).", newVersion, currentVersion);
         }
+    }
+
+    // --- ACHAT ---
+    public Game buyGame(String gameId, String userId, String platform) {
+        Game game = gameRepository.findById(gameId)
+                .orElseThrow(() -> new RuntimeException("Jeu introuvable"));
+
+        // CAS DLC
+        if (Boolean.TRUE.equals(game.getIsDlc())) {
+            validateDlcRequirements(game, platform);
+        } else {
+            // CAS JEU STANDARD
+            if (!game.getVersions().containsKey(platform)) {
+                throw new RuntimeException("Jeu non disponible sur " + platform);
+            }
+        }
+
+        // Stats et Prix
+        game.setSalesCount(game.getSalesCount() + 1);
+        updateDynamicPrice(game);
+
+        gameRepository.save(game);
+
+        // Kafka
+        GamePurchased event = GamePurchased.newBuilder()
+                .setGameId(game.getId())
+                .setUserId(userId)
+                .setPrice(game.getCurrentPrice())
+                .setPlatform(platform)
+                .setPurchasedAt(Instant.now().toEpochMilli())
+                .build();
+        gamePurchasedProducer.sendGamePurchased(event);
+
+        return game;
+    }
+
+    //Méthode nécessaire pour mettre à jour les notes (appelée plus tard par un Consumer)
+    public void updateRating(String gameId, int stars) {
+        gameRepository.findById(gameId).ifPresent(game -> {
+            long totalReviews = game.getReviewCount();
+            double currentAvg = game.getAverageRating();
+
+            // Formule de moyenne cumulative
+            double newAvg = ((currentAvg * totalReviews) + stars) / (totalReviews + 1);
+
+            game.setReviewCount(totalReviews + 1);
+            game.setAverageRating(newAvg);
+
+            // Important : On recalcul le prix car la "Qualité perçue" a changé
+            updateDynamicPrice(game);
+
+            gameRepository.save(game);
+            log.info("⭐ Avis ajouté pour {} : Note {}/5 (Nouvelle moyenne: {})", game.getTitle(), stars, newAvg);
+        });
+    }
+
+    /**
+     * Validation SIMPLIFIÉE pour les DLCs
+     */
+    private void validateDlcRequirements(Game dlc, String platform) {
+        if (dlc.getParentGameId() == null) {
+            throw new RuntimeException("Données corrompues : Ce DLC n'a pas de jeu parent.");
+        }
+
+        // 1. On cherche le parent
+        Game parent = gameRepository.findById(dlc.getParentGameId())
+                .orElseThrow(() -> new RuntimeException("Le jeu parent n'existe pas au catalogue."));
+
+        // 2. SEULE VÉRIFICATION : Est-ce que le parent est dispo sur ce support ?
+        if (!parent.getVersions().containsKey(platform)) {
+            throw new RuntimeException("Impossible d'acheter ce DLC sur " + platform + " car le jeu de base n'y est pas.");
+        }
+
+        // Fin de la vérification. Si le parent est là, c'est bon.
+    }
+
+    /** calcul du prix selon la demande et les reviews
+     *
+     * @param game
+     */
+    public void updateDynamicPrice(Game game) {
+        double multiplier = 1.0;
+
+        // Demande
+        if (game.getSalesCount() > 1000) multiplier += 0.10;
+        else if (game.getSalesCount() < 50) multiplier -= 0.10;
+
+        // Reviews
+        if (game.getReviewCount() > 5) {
+            if (game.getAverageRating() >= 4.5) multiplier += 0.10;
+            else if (game.getAverageRating() < 3.0) multiplier -= 0.20;
+        }
+
+        double newPrice = game.getBasePrice() * multiplier;
+
+        // Bornes
+        if (newPrice < game.getBasePrice() * 0.5) newPrice = game.getBasePrice() * 0.5;
+        if (newPrice > game.getBasePrice() * 1.5) newPrice = game.getBasePrice() * 1.5;
+
+        game.setCurrentPrice(Math.round(newPrice * 100.0) / 100.0);
     }
 
     // Méthode utilitaire simple pour comparer "1.5" et "1.2"
