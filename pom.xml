@@ -5,7 +5,6 @@
          https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Parent Spring Boot -->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -20,7 +19,6 @@
     <name>projet2</name>
     <description>Plateforme de gestion de flux d'événements de jeux vidéo</description>
 
-    <!-- Modules -->
     <modules>
         <module>platform-service</module>
         <module>editor-service</module>
@@ -28,7 +26,6 @@
         <module>avro-schemas</module>
     </modules>
 
-    <!-- Properties -->
     <properties>
         <java.version>21</java.version>
         <kotlin.version>2.1.0</kotlin.version>
@@ -38,10 +35,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
-    <!-- Dependency Management (versions centralisées) -->
     <dependencyManagement>
         <dependencies>
-            <!-- Avro -->
             <dependency>
                 <groupId>org.apache.avro</groupId>
                 <artifactId>avro</artifactId>
@@ -52,8 +47,6 @@
                 <artifactId>kafka-avro-serializer</artifactId>
                 <version>7.8.0</version>
             </dependency>
-
-            <!-- OpenCSV (pour editor-service) -->
             <dependency>
                 <groupId>com.opencsv</groupId>
                 <artifactId>opencsv</artifactId>
@@ -62,7 +55,31 @@
         </dependencies>
     </dependencyManagement>
 
-    <!-- Repositories -->
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration>
+                        <skip>true</skip>
+                    </configuration>
+                </plugin>
+                <!-- AJOUTEZ CECI POUR CORRIGER L'ERREUR JAVA 21 -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.13.0</version>
+                    <configuration>
+                        <source>21</source>
+                        <target>21</target>
+                        <release>21</release>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
     <repositories>
         <repository>
             <id>confluent</id>
@@ -70,5 +87,4 @@
             <url>https://packages.confluent.io/maven/</url>
         </repository>
     </repositories>
-
 </project>
