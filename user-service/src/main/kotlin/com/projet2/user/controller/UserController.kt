@@ -264,33 +264,6 @@ fun addToWishlist(
             }
         }
 
-        // 🔹 Nouvelles extensions (simulé)
-        ownedGames.forEach {
-            feed.add(
-                FeedItem(
-                    type = FeedType.NEW_DLC,
-                    gameId = it.gameId,
-                    gameName = it.gameName,
-                    message = "New extension available for ${it.gameName}",
-                    createdAt = Instant.now()
-                )
-            )
-        }
-
-        // 🔹 Baisses de prix (wishlist)
-        val wishlist = wishlistRepo.findByUserId(userId)
-        wishlist.forEach {
-            feed.add(
-                FeedItem(
-                    type = FeedType.PRICE_DROP,
-                    gameId = it.gameId,
-                    gameName = it.gameName,
-                    message = "Price drop for ${it.gameName} on ${it.platform}",
-                    createdAt = Instant.now()
-                )
-            )
-        }
-
         return feed.sortedByDescending { it.createdAt }
     }
 
