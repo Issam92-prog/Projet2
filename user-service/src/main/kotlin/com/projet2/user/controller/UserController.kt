@@ -207,6 +207,9 @@ fun addToWishlist(
     //consulter la wishlist
     @GetMapping("/{userId}/wishlist")
     fun getWishlist(@PathVariable userId: Long): List<WishlistItem> {
+        userRepo.findById(userId)
+            .orElseThrow { RuntimeException("User not found") }
+
         return wishlistRepo.findByUserId(userId)
     }
 
@@ -246,6 +249,8 @@ fun addToWishlist(
 //flux d'info crée dynamiquement
     @GetMapping("/{userId}/feed")
     fun getFeed(@PathVariable userId: Long): List<FeedItem> {
+        userRepo.findById(userId)
+            .orElseThrow { RuntimeException("User not found") }
 
         val feed = mutableListOf<FeedItem>()
 
