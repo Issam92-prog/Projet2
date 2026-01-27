@@ -154,6 +154,8 @@ fun addToWishlist(
     @PathVariable userId: Long,
     @RequestBody req: WishlistRequest
 ): WishlistItem {
+    userRepo.findById(userId)
+        .orElseThrow { RuntimeException("User not found") }
 
     val exists = wishlistRepo.existsByUserIdAndGameIdAndPlatform(
         userId,
@@ -181,6 +183,9 @@ fun addToWishlist(
         @PathVariable gameId: String,
         @RequestParam platform: Platform
     ) {
+        userRepo.findById(userId)
+            .orElseThrow { RuntimeException("User not found") }
+
         val exists = wishlistRepo.existsByUserIdAndGameIdAndPlatform(
             userId,
             gameId,
