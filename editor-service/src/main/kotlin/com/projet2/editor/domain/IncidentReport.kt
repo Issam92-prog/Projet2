@@ -5,7 +5,7 @@ import java.time.Instant
 
 @Entity
 @Table(name = "incident_reports", indexes = [
-    Index(name = "idx_game_status", columnList = "game_id,is_processed")
+    Index(name = "idx_game_status", columnList = "game_id,status")
 ])
 data class IncidentReport(
     @Column(name = "game_id", nullable = false)
