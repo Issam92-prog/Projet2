@@ -2,26 +2,22 @@ package com.projet2.user.model
 
 import jakarta.persistence.*
 import java.time.Instant
-
+//licence par dlc
 @Entity
 @Table(
     uniqueConstraints = [
-        UniqueConstraint(columnNames = ["userId", "gameId", "platform"])
+        UniqueConstraint(columnNames = ["userId", "dlcId"])
     ]
 )
-data class Buy(
+data class DlcPurchase(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
     val userId: Long,
+    val dlcId: String,
     val gameId: String,
-    val gameName: String,
 
-    @Enumerated(EnumType.STRING)
-    val platform: Platform,
-    val playTimeHours: Int = 0,
-
-    val boughtAt: Instant = Instant.now()
+    val purchasedAt: Instant = Instant.now()
 )
