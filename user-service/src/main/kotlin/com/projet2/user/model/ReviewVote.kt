@@ -1,19 +1,21 @@
 package com.projet2.user.model
 
 import jakarta.persistence.*
-import java.time.Instant
 
 @Entity
-data class Rate(
+@Table(
+    uniqueConstraints = [
+        UniqueConstraint(columnNames = ["userId", "rateId"])
+    ]
+)
+data class ReviewVote(
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
     val userId: Long,
-    val gameId: String,
-    val note: Int,
-    val gameName: String,
-    val comment: String,
+    val rateId: Long,
 
-    val ratedAt: Instant = Instant.now()
+    val useful: Boolean
 )
