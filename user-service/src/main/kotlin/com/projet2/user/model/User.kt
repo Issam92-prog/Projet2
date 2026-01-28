@@ -5,30 +5,26 @@ import java.time.Instant
 import java.time.LocalDate
 
 @Entity
-@Table(
-    name = "users",
-    uniqueConstraints = [
-        UniqueConstraint(columnNames = ["pseudo"])
-    ]
-)
-data class User(
+@Table(name = "users")
+class User(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    var id: Long = 0,
 
-    @Column(nullable = false, unique = true)
-    val pseudo: String,
+    @Column(nullable = false, unique = true) var pseudo: String,
 
-    @Column(nullable = false)
-    val firstName: String,
+    @Column(nullable = false) var firstName: String,
 
-    @Column(nullable = false)
-    val lastName: String,
+    @Column(nullable = false) var lastName: String,
 
-    @Column(nullable = false)
-    val birthDate: LocalDate,
+    @Column(nullable = false) var birthDate: LocalDate,
 
     @Column(nullable = false)
-    val createdAt: Instant = Instant.now()
+    var createdAt: Instant = Instant.now(),
+
+    @Column(nullable = false, unique = true) var email: String,
+
+    @Column(nullable = false) var password: String
 )
+
