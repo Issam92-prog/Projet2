@@ -22,18 +22,6 @@ class UserController(
     private val eventPublisher: EventPublisher
 ) {
 
-    /* ===================== USER ===================== */
-
-    @PostMapping
-    fun createUser(@RequestBody req: CreateUserRequest): User {
-        val user = User(
-            pseudo = req.pseudo,
-            firstName = req.firstName,
-            lastName = req.lastName,
-            birthDate = req.birthDate
-        )
-        return userRepo.save(user)
-    }
 
     /* ===================== BUY GAME ===================== */
 
