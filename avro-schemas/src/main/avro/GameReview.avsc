@@ -6,7 +6,8 @@
     {"name": "reviewId", "type": "string"},
     {"name": "userId", "type": "string"},
     {"name": "gameId", "type": "string"},
-    {"name": "stars", "type": "int", "doc": "Note de 1 à 5"},
+    {"name": "gameName", "type": "string"},
+    {"name": "rating", "type": "int", "doc": "Note de 1 à 5"},
     {"name": "comment", "type": "string"},
     {"name": "postedAt", "type": "long", "logicalType": "timestamp-millis"}
   ]
