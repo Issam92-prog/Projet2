@@ -61,7 +61,8 @@ class UserController(
             userId = user.id,
             gameId = req.gameId,
             gameName = req.gameName,
-            platform = req.platform
+            platform = req.platform,
+            price = req.price
         )
 
 

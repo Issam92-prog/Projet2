@@ -5,5 +5,6 @@ import com.projet2.user.model.Platform
 data class BuyRequest(
     val gameId: String,
     val gameName: String,
-    val platform: Platform
+    val platform: Platform,
+    val price: Double
 )

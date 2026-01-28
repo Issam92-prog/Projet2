@@ -22,6 +22,7 @@ data class Buy(
     @Enumerated(EnumType.STRING)
     val platform: Platform,
     val playTimeHours: Int = 0,
+    val price: Double,
 
     val boughtAt: Instant = Instant.now()
 )
