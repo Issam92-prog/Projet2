@@ -3,11 +3,11 @@
   "name": "GameReview",
   "namespace": "com.projet2.events",
   "fields": [
+    {"name": "reviewId", "type": "string"},
     {"name": "userId", "type": "string"},
     {"name": "gameId", "type": "string"},
-    {"name": "gameName", "type": "string"},
-    {"name": "rating", "type": "int"},
+    {"name": "stars", "type": "int", "doc": "Note de 1 à 5"},
     {"name": "comment", "type": "string"},
-    {"name": "reviewedAt", "type": "long", "logicalType": "timestamp-millis"}
+    {"name": "postedAt", "type": "long", "logicalType": "timestamp-millis"}
   ]
 }
