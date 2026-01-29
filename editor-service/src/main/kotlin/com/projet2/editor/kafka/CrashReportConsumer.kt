@@ -6,6 +6,7 @@ import com.projet2.editor.domain.IncidentReport
 import com.projet2.editor.domain.IncidentStatus
 import com.projet2.editor.repository.IncidentReportRepository
 import com.projet2.events.CrashReport
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
@@ -18,39 +19,48 @@ class CrashReportConsumer(
     private val log = LoggerFactory.getLogger(javaClass)
 
     @KafkaListener(topics = ["crash-report"], groupId = "editor-service-group")
-    fun consume(event: CrashReport) {
-        log.warn("Crash reçu pour le jeu : ${event.gameName}")
+    fun consume(record: ConsumerRecord<String, CrashReport>) {
+        val event = record.value()
 
-        val errorDetails = ErrorDetails(
-            message = event.errorMessage.toString(),
-            stackTrace = event.stackTrace?.toString(),
-            severity = determineSeverity(event.errorMessage.toString())
-        )
+        log.warn("===============================================")
+        log.warn("🔥 CONSUMER KAFKA APPELÉ !")
+        log.warn("Game ID: ${event.gameId}")
+        log.warn("Game Name: ${event.gameName}")
+        log.warn("Error: ${event.errorMessage}")
+        log.warn("===============================================")
 
-        val incident = IncidentReport(
-            gameId = event.gameId.toString(),
-            gameName = event.gameName.toString(),
-            platform = event.platform.toString(),
-            error = errorDetails,
-            reportedAt = Instant.ofEpochMilli(event.timestamp),
-            status = IncidentStatus.NEW
-        )
+        try {
+            val errorDetails = ErrorDetails(
+                message = event.errorMessage.toString(),
+                stackTrace = event.stackTrace?.toString(),
+                severity = determineSeverity(event.errorMessage.toString())
+            )
 
-        incidentReportRepository.save(incident)
-        log.info("💾 Incident sauvegardé (ID: ${incident.id})")
+            val incident = IncidentReport(
+                gameId = event.gameId.toString(),
+                gameName = event.gameName.toString(),
+                platform = event.platform.toString(),
+                error = errorDetails,
+                reportedAt = Instant.ofEpochMilli(event.timestamp),
+                status = IncidentStatus.NEW
+            )
 
-        val unprocessedCount = incidentReportRepository
-            .countByGameIdAndStatus(event.gameId.toString(), IncidentStatus.NEW)
+            val saved = incidentReportRepository.save(incident)
+            log.warn("💾 INCIDENT SAUVEGARDÉ (ID: ${saved.id}) !")
 
-        if (unprocessedCount >= 10) {
-            log.error("⚠️ Seuil critique atteint pour ${event.gameName} : $unprocessedCount crashs non traités !")
-            // TODO: Appeler PatchService pour créer un patch automatique
+            val unprocessedCount = incidentReportRepository
+                .countByGameIdAndStatus(event.gameId.toString(), IncidentStatus.NEW)
+
+            log.warn("📊 Total incidents non traités pour ce jeu : $unprocessedCount")
+
+            if (unprocessedCount >= 10) {
+                log.error("⚠️⚠ SEUIL CRITIQUE ATTEINT : $unprocessedCount crashs !")
+            }
+        } catch (e: Exception) {
+            log.error("❌ ERREUR DANS LE CONSUMER : ${e.message}", e)
         }
     }
 
-    /**
-     * Détermine la sévérité en fonction du message d'erreur
-     */
     private fun determineSeverity(errorMessage: String): ErrorSeverity {
         return when {
             errorMessage.contains("NullPointerException", ignoreCase = true) -> ErrorSeverity.HIGH

@@ -1,5 +1,6 @@
 package com.projet2.editor.config
 
+import com.projet2.events.CrashReport
 import com.projet2.events.GamePublished
 import com.projet2.events.PatchReleased
 import io.confluent.kafka.serializers.KafkaAvroSerializer
@@ -42,6 +43,13 @@ class KafkaConfig {
     @Bean
     fun patchReleasedKafkaTemplate(): KafkaTemplate<String, PatchReleased> {
         val factory: ProducerFactory<String, PatchReleased> =
+            DefaultKafkaProducerFactory(producerConfigs())
+        return KafkaTemplate(factory)
+    }
+
+    @Bean
+    fun crashReportKafkaTemplate(): KafkaTemplate<String, CrashReport> {
+        val factory: ProducerFactory<String, CrashReport> =
             DefaultKafkaProducerFactory(producerConfigs())
         return KafkaTemplate(factory)
     }
