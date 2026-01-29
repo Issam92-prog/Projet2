@@ -72,10 +72,6 @@ data class Game(
      */
     fun isInEarlyAccess(): Boolean = versionInfo.isEarlyAccess
 
-    /**
-     * Vérifie si c'est un DLC
-     */
-    fun isDlc(): Boolean = isDlc
 
     /**
      * Vérifie si c'est un jeu de base
