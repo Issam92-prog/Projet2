@@ -1,10 +1,13 @@
 package com.projet2.user.dto
 
-import com.projet2.user.model.Platform
 
 data class BuyRequest(
     val gameId: String,
     val gameName: String,
-    val platform: Platform,
-    val price: Double
+    val platform: String,
+    val price: Double,
+
+    // --- NOUVEAUX CHAMPS ---
+    val isDlc: Boolean? = false,
+    val parentGameId: String? = null // Obligatoire si isDlc = true
 )

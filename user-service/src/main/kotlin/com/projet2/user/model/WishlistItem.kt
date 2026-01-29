@@ -18,6 +18,6 @@ data class WishlistItem(
     val gameId: String,
     val gameName: String,
 
-    @Enumerated(EnumType.STRING)
-    val platform: Platform
+    @Column(nullable = false)
+    val platform: String
 )

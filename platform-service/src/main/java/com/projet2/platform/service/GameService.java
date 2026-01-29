@@ -1,13 +1,11 @@
 package com.projet2.platform.service;
 
 import com.projet2.events.GamePublished;
-import com.projet2.events.GamePurchased;
 import com.projet2.platform.entity.Game;
-import com.projet2.platform.kafka.producer.GamePurchasedProducer;
+import com.projet2.platform.kafka.consumer.GamePurchasedConsumer;
 import com.projet2.platform.repository.GameRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,11 +22,11 @@ public class GameService {
     private static final Logger log = LoggerFactory.getLogger(GameService.class);
 
     private GameRepository gameRepository;
-    private final GamePurchasedProducer gamePurchasedProducer;
+    private final GamePurchasedConsumer gamePurchasedConsumer;
 
-    public GameService(GameRepository gameRepository, GamePurchasedProducer gamePurchasedProducer) {
+    public GameService(GameRepository gameRepository, GamePurchasedConsumer gamePurchasedConsumer) {
         this.gameRepository = gameRepository;
-        this.gamePurchasedProducer = gamePurchasedProducer;
+        this.gamePurchasedConsumer = gamePurchasedConsumer;
     }
 
     /**
@@ -130,37 +128,22 @@ public class GameService {
     }
 
     // --- ACHAT ---
-    public Game buyGame(String gameId, String userId, String platform) {
+    public void processSale(String gameId) {
+        // 1. Récupérer le jeu
         Game game = gameRepository.findById(gameId)
-                .orElseThrow(() -> new RuntimeException("Jeu introuvable"));
+                .orElseThrow(() -> new RuntimeException("Jeu introuvable pour mise à jour stats"));
 
-        // CAS DLC
-        if (Boolean.TRUE.equals(game.getIsDlc())) {
-            validateDlcRequirements(game, platform);
-        } else {
-            // CAS JEU STANDARD
-            if (!game.getVersions().containsKey(platform)) {
-                throw new RuntimeException("Jeu non disponible sur " + platform);
-            }
-        }
-
-        // Stats et Prix
+        // 2. Mettre à jour les ventes (+1)
         game.setSalesCount(game.getSalesCount() + 1);
+
+        // 3. Mise à jour du prix dynamique (Ta logique existante)
         updateDynamicPrice(game);
 
+        // 4. Sauvegarder
         gameRepository.save(game);
 
-        // Kafka
-        GamePurchased event = GamePurchased.newBuilder()
-                .setGameId(game.getId())
-                .setUserId(userId)
-                .setPrice(game.getCurrentPrice())
-                .setPlatform(platform)
-                .setPurchasedAt(Instant.now().toEpochMilli())
-                .build();
-        gamePurchasedProducer.sendGamePurchased(event);
-
-        return game;
+        // IMPORTANT : On n'envoie PAS d'événement Kafka ici.
+        // C'est le User Service qui l'a déjà fait.
     }
 
     //Méthode nécessaire pour mettre à jour les notes (appelée plus tard par un Consumer)

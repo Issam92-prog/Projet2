@@ -9,8 +9,6 @@ interface BuyRepo : JpaRepository<Buy, Long> {
     fun findAllByUserId(userId: Long): List<Buy>
     fun existsByUserIdAndGameId(userId: Long, gameId: String): Boolean
     fun findByUserIdAndGameId(userId: Long, gameId: String): Buy?
-
-
-
+    fun existsByUserIdAndGameIdAndPlatform(userId: Long, gameId: String, platform: String): Boolean
 
 }

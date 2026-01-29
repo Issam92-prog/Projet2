@@ -6,13 +6,15 @@ import com.projet2.events.GamePurchased
 object BuyToGamePurchasedMapper {
 
     fun map(buy: Buy): GamePurchased {
-        return GamePurchased(
-            buy.gameId,                     // gameId
-            buy.gameName,                   // gameName
-            buy.userId.toString(),          // userId
-            buy.price,                      // price
-            buy.platform.name,              // platform
-            buy.boughtAt.toEpochMilli()     // purchasedAt
-        )
+        return GamePurchased.newBuilder()
+            .setGameId(buy.gameId)
+            .setUserId(buy.userId.toString())
+
+            .setGameName(buy.gameName)
+
+            .setPrice(buy.price)
+            .setPlatform(buy.platform.toString())
+            .setPurchasedAt(buy.boughtAt.toEpochMilli())
+            .build()
     }
 }

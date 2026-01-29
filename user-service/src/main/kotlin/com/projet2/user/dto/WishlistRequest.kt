@@ -4,5 +4,5 @@ import com.projet2.user.model.Platform
 data class WishlistRequest(
     val gameId: String,
     val gameName: String,
-    val platform: Platform
+    val platform: String
 )

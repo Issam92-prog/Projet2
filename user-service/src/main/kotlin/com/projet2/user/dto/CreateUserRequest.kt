@@ -6,5 +6,7 @@ data class CreateUserRequest(
     val pseudo: String,
     val firstName: String,
     val lastName: String,
-    val birthDate: LocalDate
+    val email: String,
+    val birthDate: LocalDate,
+    var password: String = ""
 )

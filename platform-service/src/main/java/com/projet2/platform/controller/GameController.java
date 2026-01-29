@@ -67,21 +67,7 @@ public class GameController {
     @GetMapping(value = "/count", produces = "text/plain")
     public ResponseEntity<String> countGames() {
         long count = gameService.getAllGames().size();
-        return ResponseEntity.ok("Nombre de jeux :" + count+ "\n");
+        return ResponseEntity.ok("Nombre de jeux :" + count + "\n");
     }
 
-    // POST /games/{id}/buy?userId=123&platform=PC
-    @PostMapping("/{id}/buy")
-    public ResponseEntity<?> buyGame(
-            @PathVariable String id,
-            @RequestParam String userId,
-            @RequestParam String platform) {
-        try {
-            Game game = gameService.buyGame(id, userId, platform);
-            return ResponseEntity.ok("Achat réussi pour " + game.getTitle() + " au prix de " + game.getCurrentPrice() + "€");
-        } catch (RuntimeException e) {
-            // Renvoie une erreur 400 Bad Request avec le message (ex: "Jeu non dispo sur PC")
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
 }

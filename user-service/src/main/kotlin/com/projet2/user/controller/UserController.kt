@@ -7,32 +7,64 @@ import com.projet2.user.mapper.BuyToGamePurchasedMapper
 import com.projet2.user.mapper.RateToGameReviewMapper
 import com.projet2.user.model.*
 import com.projet2.user.repository.*
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users") // Préfixe standardisé
 class UserController(
     private val userRepo: UserRepo,
     private val buyRepo: BuyRepo,
     private val rateRepo: RateRepo,
     private val reviewVoteRepo: ReviewVoteRepo,
     private val wishlistRepo: WishlistRepo,
-    private val dlcRepo: DlcRepo,
-    private val dlcPurchaseRepo: DlcPurchaseRepo,
     private val eventPublisher: EventPublisher
 ) {
 
-    /* ===================== USER ===================== */
+    /* ===================== PROFIL JOUEUR (Nouveau) ===================== */
 
-    @PostMapping
-    fun createUser(@RequestBody req: CreateUserRequest): User {
-        val user = User(
-            pseudo = req.pseudo,
-            firstName = req.firstName,
-            lastName = req.lastName,
-            birthDate = req.birthDate
-        )
-        return userRepo.save(user)
+    @GetMapping("/{targetId}/profile")
+    fun getUserProfile(
+        @PathVariable targetId: Long,
+        @RequestParam(required = false) requesterId: Long?
+    ): ResponseEntity<UserProfileDTO> {
+
+        // 1. Trouver l'utilisateur cible
+        val targetUser = userRepo.findById(targetId)
+            .orElseThrow { RuntimeException("Utilisateur introuvable") }
+
+        // 2. Récupérer ses données
+        val myGames = buyRepo.findAllByUserId(targetId)
+        val myReviews = rateRepo.findByUserId(targetId) // Assure-toi d'avoir cette méthode dans RateRepo
+
+        // 3. Logique de Confidentialité
+        val isMe = (requesterId != null && requesterId == targetId)
+
+        val profile = if (isMe) {
+            // CAS 1 : C'est MOI (je vois tout)
+            UserProfileDTO(
+                userId = targetUser.id.toString(),
+                username = targetUser.pseudo,
+                joinedAt = targetUser.createdAt.toString(),
+                email = targetUser.email,
+                totalPlayTime = myGames.sumOf { it.playTimeHours },
+                gamesOwned = myGames.map { GameSummary(it.gameName, it.playTimeHours) },
+                reviews = myReviews.map { ReviewSummary(it.gameId, it.note, it.comment) }
+            )
+        } else {
+            // CAS 2 : C'est un AUTRE (Vue publique limitée)
+            UserProfileDTO(
+                userId = targetUser.id.toString(),
+                username = targetUser.pseudo,
+                joinedAt = targetUser.createdAt.toString(),
+                email = null, // Masqué
+                totalPlayTime = null, // Masqué
+                gamesOwned = myGames.take(5).map { GameSummary(it.gameName, it.playTimeHours) }, // Aperçu seulement
+                reviews = myReviews.map { ReviewSummary(it.gameId, it.note, it.comment) } // Les avis restent souvent publics
+            )
+        }
+
+        return ResponseEntity.ok(profile)
     }
 
     /* ===================== BUY GAME ===================== */
@@ -43,20 +75,45 @@ class UserController(
         @RequestBody req: BuyRequest
     ): Buy {
 
+        // 1. Vérifier l'utilisateur
         userRepo.findById(userId)
-            .orElseThrow { RuntimeException("User not found") }
+            .orElseThrow { RuntimeException("Utilisateur introuvable") }
 
+        // 2. LOGIQUE DLC : Vérification du jeu de base
+        val isDlcValue = req.isDlc ?: false
+        if (isDlcValue) {
+            if (req.parentGameId == null) {
+                throw RuntimeException("Erreur: L'ID du jeu parent est requis pour acheter un DLC")
+            }
+
+            // AMÉLIORATION : On vérifie que le joueur possède le jeu parent SUR LA MÊME PLATEFORME
+            // (On ne peut pas acheter un DLC sur PC si on a le jeu sur PS5)
+            val ownsBaseGame = buyRepo.existsByUserIdAndGameIdAndPlatform(userId, req.parentGameId, req.platform)
+
+            if (!ownsBaseGame) {
+                throw RuntimeException("⛔ Impossible d'acheter ce DLC sur ${req.platform} : Vous ne possédez pas le jeu de base sur cette plateforme !")
+            }
+        }
+
+        // 3. Vérifier si on possède déjà cet article SUR CETTE PLATEFORME
+        // C'est ici que la magie multi-plateforme opère.
+        if (buyRepo.existsByUserIdAndGameIdAndPlatform(userId, req.gameId, req.platform)) {
+            throw RuntimeException("Vous possédez déjà ce jeu/DLC sur la plateforme ${req.platform} !")
+        }
+
+        // 4. Enregistrement
         val buy = Buy(
             userId = userId,
             gameId = req.gameId,
             gameName = req.gameName,
-            platform = req.platform,
-            price = req.price
+            platform = req.platform, // String
+            price = req.price,
+            isDlc = isDlcValue
         )
 
         val savedBuy = buyRepo.save(buy)
 
-        // 🔔 Kafka event
+        // 5. Kafka Event
         val event = BuyToGamePurchasedMapper.map(savedBuy)
         eventPublisher.publish(
             Topics.GAME_PURCHASED,
@@ -173,7 +230,7 @@ class UserController(
     fun removeFromWishlist(
         @PathVariable userId: Long,
         @PathVariable gameId: String,
-        @RequestParam platform: Platform
+        @RequestParam platform: String
     ) {
         wishlistRepo.deleteByUserIdAndGameIdAndPlatform(userId, gameId, platform)
     }
@@ -183,43 +240,17 @@ class UserController(
         return wishlistRepo.findByUserId(userId)
     }
 
-    /* ===================== DLC ===================== */
-
-    @PostMapping("/{userId}/dlc/buy")
-    fun buyDlc(
-        @PathVariable userId: Long,
-        @RequestBody req: BuyDlcRequest
-    ): DlcPurchase {
-
-        val dlc = dlcRepo.findById(req.dlcId)
-            .orElseThrow { RuntimeException("DLC not found") }
-
-        if (!buyRepo.existsByUserIdAndGameId(userId, dlc.gameId)) {
-            throw RuntimeException("Base game not owned")
-        }
-
-        if (dlcPurchaseRepo.existsByUserIdAndDlcId(userId, dlc.id)) {
-            throw RuntimeException("DLC already purchased")
-        }
-
-        return dlcPurchaseRepo.save(
-            DlcPurchase(
-                userId = userId,
-                dlcId = dlc.id,
-                gameId = dlc.gameId
-            )
-        )
-    }
 
     /* ===================== FEED ===================== */
 
     @GetMapping("/{userId}/feed")
     fun getFeed(@PathVariable userId: Long): List<FeedItem> {
-
         val feed = mutableListOf<FeedItem>()
-        val ownedGames = buyRepo.findByUserId(userId)
+        // Note: buyRepo.findByUserId doit exister (équivalent à findAllByUserId)
+        val ownedGames = buyRepo.findAllByUserId(userId)
 
         ownedGames.forEach { buy ->
+            // Note: rateRepo.findByGameIdAndUserIdNot doit être défini dans RateRepo
             val reviews = rateRepo.findByGameIdAndUserIdNot(buy.gameId, userId)
             reviews.forEach {
                 feed.add(

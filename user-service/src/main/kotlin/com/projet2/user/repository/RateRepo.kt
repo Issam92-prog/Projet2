@@ -7,5 +7,6 @@ interface RateRepo : JpaRepository<Rate, Long> {
 
     fun findByGameId(gameId: String): List<Rate>
     fun findByGameIdAndUserIdNot(gameId: String, userId: Long): List<Rate>
+    fun findByUserId(userId: Long): List<Rate>
 
 }

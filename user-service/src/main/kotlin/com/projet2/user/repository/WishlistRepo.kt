@@ -1,7 +1,6 @@
 package com.projet2.user.repository
 
 import com.projet2.user.model.WishlistItem
-import com.projet2.user.model.Platform
 
 import org.springframework.data.jpa.repository.JpaRepository
 
@@ -12,12 +11,12 @@ interface WishlistRepo : JpaRepository<WishlistItem, Long> {
     fun existsByUserIdAndGameIdAndPlatform(
         userId: Long,
         gameId: String,
-        platform: Platform
+        platform: String
     ): Boolean
     fun deleteByUserIdAndGameIdAndPlatform(
         userId: Long,
         gameId: String,
-        platform: Platform
+        platform: String
     )
 
 }
