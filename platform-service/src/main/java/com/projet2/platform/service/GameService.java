@@ -2,7 +2,6 @@ package com.projet2.platform.service;
 
 import com.projet2.events.GamePublished;
 import com.projet2.platform.entity.Game;
-import com.projet2.platform.kafka.consumer.GamePurchasedConsumer;
 import com.projet2.platform.repository.GameRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,16 +20,16 @@ public class GameService {
 
     private static final Logger log = LoggerFactory.getLogger(GameService.class);
 
-    private GameRepository gameRepository;
-    private final GamePurchasedConsumer gamePurchasedConsumer;
+    private final GameRepository gameRepository;
 
-    public GameService(GameRepository gameRepository, GamePurchasedConsumer gamePurchasedConsumer) {
+    // CORRECTION : On a supprimé le Consumer (et le Producer) du constructeur
+    // Le Service n'a besoin que du Repository.
+    public GameService(GameRepository gameRepository) {
         this.gameRepository = gameRepository;
-        this.gamePurchasedConsumer = gamePurchasedConsumer;
     }
 
     /**
-     * Appelé quand un éditeur publie un nouveau jeu (GamePublishedConsumer).
+     * Appelé quand un éditeur publie un nouveau jeu.
      */
     public Game handleGamePublished(GamePublished event) {
         log.info("💾 Traitement de GamePublished : {}", event.getGameName());
@@ -44,7 +43,6 @@ public class GameService {
         } else {
             game = new Game();
             game.setId(event.getGameId().toString());
-            // Sécurité pour la Map
             if (game.getVersions() == null) {
                 game.setVersions(new HashMap<>());
             }
@@ -58,25 +56,18 @@ public class GameService {
                 game.setCurrentPrice(event.getPrice());
             }
         } else {
-            // Valeur par défaut si l'event n'a pas de prix
             game.setBasePrice(59.99);
             game.setCurrentPrice(59.99);
         }
 
-        // Mapping des champs simples
         game.setTitle(event.getGameName().toString());
         game.setPublisherName(event.getPublisherName().toString());
         game.setIsEarlyAccess(false);
 
-        // --- LOGIQUE MULTI-PLATEFORME ---
-        // On AJOUTE la plateforme reçue dans la map des versions
         String platform = event.getPlatform().toString();
         String version = event.getVersion().toString();
-
         game.getVersions().put(platform, version);
-        // --------------------------------
 
-        // Mapping des genres
         if (event.getGenre() != null) {
             List<String> genres = event.getGenre().stream()
                     .map(CharSequence::toString)
@@ -84,155 +75,77 @@ public class GameService {
             game.setGenres(genres);
         }
 
-        Game savedGame = gameRepository.save(game);
-        log.info("   ✅ Jeu sauvegardé : {} - Ajout Support {} (v{})", savedGame.getTitle(), platform, version);
-
-        return savedGame;
+        return gameRepository.save(game);
     }
 
-    /**
-     * Appelé quand un éditeur sort un patch (PatchReleasedConsumer).
-     */
     public void applyPatch(String gameId, String platform, String newVersion, String comment) {
-        // 1. Chercher le jeu
         Optional<Game> gameOpt = gameRepository.findById(gameId);
-
-        if (gameOpt.isEmpty()) {
-            log.warn("⛔ IGNORE PATCH : Jeu inconnu au catalogue (ID: {}).", gameId);
-            return;
-        }
+        if (gameOpt.isEmpty()) return;
 
         Game game = gameOpt.get();
-
-        // 2. Vérifier si on possède cette plateforme
-        if (!game.getVersions().containsKey(platform)) {
-            log.warn("⛔ IGNORE PATCH : Le jeu '{}' n'est pas référencé sur {} chez nous.", game.getTitle(), platform);
-            return;
-        }
+        if (!game.getVersions().containsKey(platform)) return;
 
         String currentVersion = game.getVersions().get(platform);
 
-        // 3. Vérifier l'antériorité (Est-ce vraiment une mise à jour ?)
         if (isVersionNewer(currentVersion, newVersion)) {
-            log.info("✅ PATCH APPLIQUÉ : {} sur {} passe de {} à {}.", game.getTitle(), platform, currentVersion, newVersion);
-
-            // Mise à jour de la version
             game.getVersions().put(platform, newVersion);
-
             gameRepository.save(game);
-
-            log.info("   -> Commentaire patch : {}", comment);
-        } else {
-            log.warn("⚠️ PATCH OBSOLÈTE : Version reçue ({}) <= Version actuelle ({}).", newVersion, currentVersion);
+            log.info("✅ PATCH APPLIQUÉ : {} (v{})", game.getTitle(), newVersion);
         }
     }
 
-    // --- ACHAT ---
+    // --- ACHAT (Méthode appelée par le Consumer) ---
     public void processSale(String gameId) {
-        // 1. Récupérer le jeu
         Game game = gameRepository.findById(gameId)
                 .orElseThrow(() -> new RuntimeException("Jeu introuvable pour mise à jour stats"));
 
-        // 2. Mettre à jour les ventes (+1)
         game.setSalesCount(game.getSalesCount() + 1);
-
-        // 3. Mise à jour du prix dynamique (Ta logique existante)
         updateDynamicPrice(game);
 
-        // 4. Sauvegarder
         gameRepository.save(game);
-
-        // IMPORTANT : On n'envoie PAS d'événement Kafka ici.
-        // C'est le User Service qui l'a déjà fait.
+        log.info("📈 Ventes mises à jour pour {} : Total {}", game.getTitle(), game.getSalesCount());
     }
 
-    //Méthode nécessaire pour mettre à jour les notes (appelée plus tard par un Consumer)
+    // --- Autres méthodes utilitaires ---
+
     public void updateRating(String gameId, int stars) {
         gameRepository.findById(gameId).ifPresent(game -> {
             long totalReviews = game.getReviewCount();
             double currentAvg = game.getAverageRating();
-
-            // Formule de moyenne cumulative
             double newAvg = ((currentAvg * totalReviews) + stars) / (totalReviews + 1);
 
             game.setReviewCount(totalReviews + 1);
             game.setAverageRating(newAvg);
-
-            // Important : On recalcul le prix car la "Qualité perçue" a changé
             updateDynamicPrice(game);
 
             gameRepository.save(game);
-            log.info("⭐ Avis ajouté pour {} : Note {}/5 (Nouvelle moyenne: {})", game.getTitle(), stars, newAvg);
         });
     }
 
-    /**
-     * Validation SIMPLIFIÉE pour les DLCs
-     */
-    private void validateDlcRequirements(Game dlc, String platform) {
-        if (dlc.getParentGameId() == null) {
-            throw new RuntimeException("Données corrompues : Ce DLC n'a pas de jeu parent.");
-        }
-
-        // 1. On cherche le parent
-        Game parent = gameRepository.findById(dlc.getParentGameId())
-                .orElseThrow(() -> new RuntimeException("Le jeu parent n'existe pas au catalogue."));
-
-        // 2. SEULE VÉRIFICATION : Est-ce que le parent est dispo sur ce support ?
-        if (!parent.getVersions().containsKey(platform)) {
-            throw new RuntimeException("Impossible d'acheter ce DLC sur " + platform + " car le jeu de base n'y est pas.");
-        }
-
-        // Fin de la vérification. Si le parent est là, c'est bon.
-    }
-
-    /** calcul du prix selon la demande et les reviews
-     *
-     * @param game
-     */
     public void updateDynamicPrice(Game game) {
         double multiplier = 1.0;
-
-        // Demande
         if (game.getSalesCount() > 1000) multiplier += 0.10;
         else if (game.getSalesCount() < 50) multiplier -= 0.10;
 
-        // Reviews
         if (game.getReviewCount() > 5) {
             if (game.getAverageRating() >= 4.5) multiplier += 0.10;
             else if (game.getAverageRating() < 3.0) multiplier -= 0.20;
         }
 
         double newPrice = game.getBasePrice() * multiplier;
-
-        // Bornes
         if (newPrice < game.getBasePrice() * 0.5) newPrice = game.getBasePrice() * 0.5;
         if (newPrice > game.getBasePrice() * 1.5) newPrice = game.getBasePrice() * 1.5;
 
         game.setCurrentPrice(Math.round(newPrice * 100.0) / 100.0);
     }
 
-    // Méthode utilitaire simple pour comparer "1.5" et "1.2"
     private boolean isVersionNewer(String current, String target) {
         if (current == null) return true;
         return target.compareTo(current) > 0;
     }
 
-    // --- Méthodes de lecture ---
-
-    public List<Game> getAllGames() {
-        return gameRepository.findAll();
-    }
-
-    public Optional<Game> getGameById(String id) {
-        return gameRepository.findById(id);
-    }
-
-    public List<Game> getGamesByPlatform(String platform) {
-        return gameRepository.findByPlatform(platform);
-    }
-
-    public List<Game> getGamesByPublisher(String publisherName) {
-        return gameRepository.findByPublisherName(publisherName);
-    }
+    public List<Game> getAllGames() { return gameRepository.findAll(); }
+    public Optional<Game> getGameById(String id) { return gameRepository.findById(id); }
+    public List<Game> getGamesByPlatform(String platform) { return gameRepository.findByPlatform(platform); }
+    public List<Game> getGamesByPublisher(String publisherName) { return gameRepository.findByPublisherName(publisherName); }
 }

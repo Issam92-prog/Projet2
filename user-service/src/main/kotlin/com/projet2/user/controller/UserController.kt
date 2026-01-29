@@ -152,10 +152,17 @@ class UserController(
         @RequestBody req: RateRequest
     ): Rate {
 
-        if (!buyRepo.existsByUserIdAndGameId(userId, req.gameId)) {
-            throw RuntimeException("User does not own this game")
+        // 1. On récupère l'achat complet (au lieu de juste vérifier s'il existe)
+        val purchase = buyRepo.findByUserIdAndGameId(userId, req.gameId)
+            ?: throw RuntimeException("Vous ne possédez pas ce jeu, vous ne pouvez pas le noter.")
+
+        // 2. CONDITION DE TEMPS DE JEU (Exemple: 2 heures minimum)
+        val minPlayTime = 2.0 // Heures
+        if (purchase.playTimeHours < minPlayTime) {
+            throw RuntimeException("Trop tôt pour juger ! Vous devez jouer au moins $minPlayTime heures avant de donner votre avis (Temps actuel : ${purchase.playTimeHours}h).")
         }
 
+        // 3. On enregistre la note
         val rate = Rate(
             userId = userId,
             gameId = req.gameId,
@@ -166,7 +173,7 @@ class UserController(
 
         val savedRate = rateRepo.save(rate)
 
-        // 🔔 Kafka event
+        // 4. Kafka event
         val event = RateToGameReviewMapper.map(savedRate)
         eventPublisher.publish(
             Topics.GAME_REVIEWED,
