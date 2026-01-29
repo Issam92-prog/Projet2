@@ -64,7 +64,6 @@ class PatchService(
     }
 
     private fun publishPatchEvent(game: Game, patch: Patch) {
-        // Convertir List<String> en List<PatchChange>
         val patchChanges = patch.changes.map { change ->
             com.projet2.events.PatchChange.newBuilder()
                 .setType(patch.type.name)
