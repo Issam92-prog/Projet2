@@ -1,4 +1,4 @@
-package com.projet2.editor
+package com.projet2.editor.service
 
 import com.opencsv.CSVReaderBuilder
 import com.projet2.editor.domain.Game
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.InputStreamReader
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Service
 class GamePublisherService(
@@ -76,6 +76,7 @@ class GamePublisherService(
                         .setGenre(listOf(line[3]))
                         .setVersion("1.0.0")
                         .setPublishedAt(publishedAt.toEpochMilli())
+                        .setPrice(59.99)
                         .build()
 
                     gamePublishedKafkaTemplate.send("game-published", gameEvent.gameId, gameEvent)

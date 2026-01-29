@@ -1,5 +1,6 @@
 package com.projet2.editor
 
+import com.projet2.editor.service.GamePublisherService
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

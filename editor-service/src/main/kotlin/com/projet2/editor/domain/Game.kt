@@ -6,7 +6,8 @@ import java.time.Instant
 @Entity
 @Table(name = "games", indexes = [
     Index(name = "idx_game_id", columnList = "game_id"),
-    Index(name = "idx_publisher", columnList = "publisher_id")
+    Index(name = "idx_publisher", columnList = "publisher_id"),
+    Index(name = "idx_is_dlc", columnList = "is_dlc")
 ])
 data class Game(
     @Column(name = "game_id", unique = true, nullable = false)
@@ -31,6 +32,12 @@ data class Game(
     @Embedded
     val versionInfo: VersionInfo = VersionInfo(),
 
+    @Column(name = "is_dlc")
+    val isDlc: Boolean = false,
+
+    @Column(name = "base_game_id")
+    val baseGameId: String? = null, // Si c'est un DLC, référence au jeu de base
+
     @Column(name = "created_at")
     val createdAt: Instant = Instant.now(),
 
@@ -38,11 +45,19 @@ data class Game(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null
 ) {
-    fun applyPatch(newVersion: String, description: String, changes: List<String>): Patch {
-        require(newVersion > versionInfo.currentVersion) {
-            "New version $newVersion must be greater than current ${versionInfo.currentVersion}"
-        }
+    /**
+     * Met à jour la version du jeu
+     */
+    fun updateVersion(newVersion: String): Game {
+        return this.copy(
+            versionInfo = versionInfo.copy(currentVersion = newVersion)
+        )
+    }
 
+    /**
+     * Applique un patch au jeu
+     */
+    fun applyPatch(newVersion: String, description: String, changes: List<String>): Patch {
         return Patch(
             game = this,
             previousVersion = versionInfo.currentVersion,
@@ -52,18 +67,30 @@ data class Game(
         )
     }
 
-    fun updateVersion(newVersion: String): Game {
-        return copy(versionInfo = versionInfo.copy(currentVersion = newVersion))
-    }
+    /**
+     * Vérifie si le jeu est en early access
+     */
+    fun isInEarlyAccess(): Boolean = versionInfo.isEarlyAccess
+
+    /**
+     * Vérifie si c'est un DLC
+     */
+    fun isDlc(): Boolean = isDlc
+
+    /**
+     * Vérifie si c'est un jeu de base
+     */
+    fun isBaseGame(): Boolean = !isDlc
 }
 
+/**
+ * Informations de version
+ */
 @Embeddable
 data class VersionInfo(
-    @Column(name = "current_version", nullable = false)
+    @Column(name = "current_version")
     val currentVersion: String = "1.0.0",
 
     @Column(name = "is_early_access")
-    val isEarlyAccess: Boolean = true
-) {
-    fun isBeta() = currentVersion.startsWith("0.")
-}
+    val isEarlyAccess: Boolean = false
+)
