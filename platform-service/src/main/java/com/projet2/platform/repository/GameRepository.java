@@ -1,6 +1,8 @@
 package com.projet2.platform.repository;
 
 import com.projet2.platform.entity.Game;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +21,7 @@ public interface GameRepository extends JpaRepository<Game, String> {
     // -------------------------------
 
     List<Game> findByPublisherName(String publisherName);
-
+    List<Game> findByParentGameId(String parentGameId);
     List<Game> findByIsEarlyAccess(Boolean isEarlyAccess);
+    Page<Game> findAll(Pageable pageable);
 }

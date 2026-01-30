@@ -291,4 +291,31 @@ class UserController(
         }
         return feed.sortedByDescending { it.createdAt }
     }
+
+    @GetMapping("/rates/game/{gameId}")
+    fun getGameReviews(@PathVariable gameId: String): List<Rate> {
+        // Cette méthode existe déjà dans votre RateRepo
+        return rateRepo.findByGameId(gameId)
+    }
+
+    @PutMapping("/{userId}/library/{gameId}/playtime")
+    fun addPlayTime(
+        @PathVariable userId: Long, // Attention au type Long vs String selon votre repo
+        @PathVariable gameId: String,
+        @RequestBody req: UpdatePlayTimeRequest
+    ): ResponseEntity<String> {
+
+        // 1. Récupération
+        val buy = buyRepo.findByUserIdAndGameId(userId, gameId)
+            ?: return ResponseEntity.notFound().build()
+
+        // 2. Addition (Fonctionne car c'est Int + Int)
+        // Grâce au 'var' dans l'étape 1, on peut modifier directement
+        buy.playTimeHours += req.hours
+
+        // 3. Sauvegarde
+        buyRepo.save(buy)
+
+        return ResponseEntity.ok("Temps de jeu ajouté ! Total : ${buy.playTimeHours}h")
+    }
 }

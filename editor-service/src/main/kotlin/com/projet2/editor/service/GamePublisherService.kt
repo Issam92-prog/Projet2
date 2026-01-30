@@ -9,6 +9,8 @@ import com.projet2.editor.repository.GameRepository
 import com.projet2.editor.repository.PublisherRepository
 import com.projet2.events.GamePublished
 import org.slf4j.LoggerFactory
+import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.event.EventListener
 import org.springframework.core.io.ClassPathResource
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
@@ -25,74 +27,66 @@ class GamePublisherService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @Transactional
+    @EventListener(ApplicationReadyEvent::class)
     fun publishGamesFromCsv() {
-        // Vérifier si déjà importé
-        val existingCount = gameRepository.count()
-        if (existingCount > 0) {
-            log.info("⏭️ Import CSV ignoré : $existingCount jeux déjà présents en base")
-            return
-        }
+        if (gameRepository.count() > 0) return // On évite de réimporter si déjà fait
 
-        log.info("📥 Lancement de l'importation CSV...")
+        log.info("📥 Lancement de l'importation CSV avec IDs Uniques...")
         val resource = ClassPathResource("vgsales.csv")
         val reader = InputStreamReader(resource.inputStream)
 
         CSVReaderBuilder(reader).withSkipLines(1).build().use { csvReader ->
             csvReader.forEachIndexed { index, line ->
                 try {
-                    val publisherName = line[4]
-                    val gameId = UUID.randomUUID().toString()
-                    val publishedAt = Instant.now()
+                    val gameName = line[0].trim()
+                    val platform = line[1].trim()
+                    val genre = line[3].trim()
+                    val publisherName = line[4].trim()
 
+                    // ✅ SOLUTION MAGIQUE : ID basé sur le TITRE
+                    // "007 Racing" donnera toujours le MEME ID, quelle que soit la plateforme
+                    val uniqueId = UUID.nameUUIDFromBytes(gameName.toByteArray()).toString()
+
+                    // 1. Gestion Editeur
                     val publisher = publisherRepository.findByName(publisherName)
-                        .orElseGet {
-                            val newPublisher = Publisher(
-                                name = publisherName,
-                                metadata = PublisherMetadata()
-                            )
-                            publisherRepository.save(newPublisher)
-                        }
+                        .orElseGet { publisherRepository.save(Publisher(name = publisherName, metadata = PublisherMetadata())) }
 
-                    val game = Game(
-                        gameId = gameId,
-                        name = line[0],
-                        platform = line[1],
-                        genre = line[3],
-                        publisher = publisher,
-                        publishedAt = publishedAt,
-                        versionInfo = VersionInfo(
-                            currentVersion = "1.0.0",
-                            isEarlyAccess = false
+                    // 2. Sauvegarde en Base (Editor)
+                    // ✅ CRUCIAL : On ne sauvegarde que si l'ID n'existe pas encore pour éviter le crash Hibernate
+                    if (!gameRepository.existsByGameId(uniqueId)) {
+                        val game = Game(
+                            gameId = uniqueId,
+                            name = gameName,
+                            platform = "Multi", // On met "Multi" car cet objet représentera toutes les versions coté Editor
+                            genre = genre,
+                            publisher = publisher,
+                            publishedAt = Instant.now(),
+                            versionInfo = VersionInfo("1.0.0", false)
                         )
-                    )
-                    gameRepository.save(game)
+                        gameRepository.save(game)
+                    }
 
+                    // 3. Envoi Kafka (Platform Service)
+                    // Le Platform Service recevra plusieurs fois le même ID mais avec des plateformes différentes
+                    // Il devra faire le "merge" (fusion)
                     val gameEvent = GamePublished.newBuilder()
-                        .setGameId(gameId)
-                        .setGameName(line[0])
-                        .setPlatform(line[1])
+                        .setGameId(uniqueId)
+                        .setGameName(gameName)
+                        .setPlatform(platform) // Ici on envoie la VRAIE plateforme (PS1, N64...)
                         .setPublisherName(publisherName)
-                        .setGenre(listOf(line[3]))
+                        .setGenre(listOf(genre))
                         .setVersion("1.0.0")
-                        .setPublishedAt(publishedAt.toEpochMilli())
+                        .setPublishedAt(Instant.now().toEpochMilli())
                         .setPrice(59.99)
                         .build()
 
-                    gamePublishedKafkaTemplate.send("game-published", gameEvent.gameId, gameEvent)
-
-                    if ((index + 1) % 100 == 0) {
-                        log.info("✅ ${index + 1} jeux publiés...")
-                    }
+                    gamePublishedKafkaTemplate.send("game-published", uniqueId, gameEvent)
 
                 } catch (e: Exception) {
-                    log.error("❌ Erreur ligne $index: ${e.message}")
+                    log.error("Erreur ligne $index : ${e.message}")
                 }
             }
         }
-
-        val totalGames = gameRepository.count()
-        val totalPublishers = publisherRepository.count()
-        log.info("🎉 Importation terminée ! $totalGames jeux, $totalPublishers éditeurs")
+        log.info("🎉 Import terminé : Un seul ID par Jeu !")
     }
 }
