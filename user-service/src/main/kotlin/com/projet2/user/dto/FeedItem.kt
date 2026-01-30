@@ -7,7 +7,10 @@ data class FeedItem(
     val gameId: String,
     val gameName: String,
     val message: String,
-    val createdAt: Instant
+    val createdAt: Instant,
+    //valeur par défaut 0 pour ne pas casser le reste
+    val usefulCount: Long = 0,
+    val uselessCount: Long = 0
 )
 
 enum class FeedType {

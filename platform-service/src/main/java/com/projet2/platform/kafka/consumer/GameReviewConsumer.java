@@ -21,7 +21,7 @@ public class GameReviewConsumer {
         this.gameService = gameService;
     }
 
-    @KafkaListener(topics = "game-review", groupId = "${spring.kafka.consumer.group-id}")
+    @KafkaListener(topics = "game-reviewed", groupId = "${spring.kafka.consumer.group-id}")
     public void consume(GameReview event) {
         // 1. On récupère les infos du jeu en base pour enrichir le log
         Optional<Game> gameOpt = gameService.getGameById(event.getGameId().toString());

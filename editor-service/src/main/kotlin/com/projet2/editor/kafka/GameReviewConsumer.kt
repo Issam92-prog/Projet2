@@ -16,7 +16,7 @@ class GameReviewConsumer(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @KafkaListener(topics = ["game-review"], groupId = "editor-service-group")
+    @KafkaListener(topics = ["game-reviewed"], groupId = "editor-service-group")
     fun consume(record: ConsumerRecord<String, GameReviewEvent>) {
         val event = record.value()
 

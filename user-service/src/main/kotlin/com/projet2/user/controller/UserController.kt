@@ -7,6 +7,7 @@ import com.projet2.user.mapper.BuyToGamePurchasedMapper
 import com.projet2.user.mapper.RateToGameReviewMapper
 import com.projet2.user.model.*
 import com.projet2.user.repository.*
+import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -20,6 +21,8 @@ class UserController(
     private val wishlistRepo: WishlistRepo,
     private val eventPublisher: EventPublisher
 ) {
+
+    private val log = LoggerFactory.getLogger(UserController::class.java)
 
     /* ===================== PROFIL JOUEUR (Nouveau) ===================== */
 
@@ -162,6 +165,11 @@ class UserController(
             throw RuntimeException("Trop tôt pour juger ! Vous devez jouer au moins $minPlayTime heures avant de donner votre avis (Temps actuel : ${purchase.playTimeHours}h).")
         }
 
+        // Condition de ne pas avoir deja donné un avis
+        if (rateRepo.existsByUserIdAndGameId(userId, req.gameId)) {
+            throw RuntimeException("Vous avez déjà donné votre avis sur ce jeu !")
+        }
+
         // 3. On enregistre la note
         val rate = Rate(
             userId = userId,
@@ -175,6 +183,7 @@ class UserController(
 
         // 4. Kafka event
         val event = RateToGameReviewMapper.map(savedRate)
+        log.info("📝 Avis créé par User {} pour le jeu {}", userId, req.gameName)
         eventPublisher.publish(
             Topics.GAME_REVIEWED,
             userId.toString(),
@@ -201,6 +210,8 @@ class UserController(
         if (reviewVoteRepo.existsByUserIdAndRateId(userId, rateId)) {
             throw RuntimeException("Already voted")
         }
+
+        log.info("👍 Vote enregistré pour l'avis ID {}: Utile={}", rateId, req.useful)
 
         return reviewVoteRepo.save(
             ReviewVote(
@@ -253,25 +264,31 @@ class UserController(
     @GetMapping("/{userId}/feed")
     fun getFeed(@PathVariable userId: Long): List<FeedItem> {
         val feed = mutableListOf<FeedItem>()
-        // Note: buyRepo.findByUserId doit exister (équivalent à findAllByUserId)
         val ownedGames = buyRepo.findAllByUserId(userId)
 
         ownedGames.forEach { buy ->
-            // Note: rateRepo.findByGameIdAndUserIdNot doit être défini dans RateRepo
             val reviews = rateRepo.findByGameIdAndUserIdNot(buy.gameId, userId)
-            reviews.forEach {
+            reviews.forEach { review ->
+
+                // ✅ CORRECTION & AJOUT : On appelle les nouvelles méthodes du Repo
+                val useful = reviewVoteRepo.countByRateIdAndUsefulTrue(review.id)
+                val useless = reviewVoteRepo.countByRateIdAndUsefulFalse(review.id)
+
                 feed.add(
                     FeedItem(
                         type = FeedType.NEW_REVIEW,
-                        gameId = it.gameId,
-                        gameName = it.gameName,
-                        message = "New review: ${it.note}/5",
-                        createdAt = it.ratedAt
+                        gameId = review.gameId,
+                        gameName = review.gameName,
+                        message = "New review: ${review.note}/5 \nCommentaire: ${review.comment}",
+                        createdAt = review.ratedAt,
+
+                        // On injecte les deux scores
+                        usefulCount = useful,
+                        uselessCount = useless
                     )
                 )
             }
         }
-
         return feed.sortedByDescending { it.createdAt }
     }
 }

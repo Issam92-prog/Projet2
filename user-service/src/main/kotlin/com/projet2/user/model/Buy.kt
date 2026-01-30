@@ -21,6 +21,7 @@ data class Buy(
 
     @Column(nullable = false)
     val platform: String,
+
     val playTimeHours: Int = 0,
     val price: Double,
     val isDlc: Boolean = false,
