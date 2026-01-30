@@ -18,5 +18,5 @@ data class GameSummary(
 data class ReviewSummary(
     val gameId: String,
     val stars: Int,
-    val comment: String
+    val comment: String?
 )

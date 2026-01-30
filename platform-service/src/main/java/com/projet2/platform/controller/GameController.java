@@ -1,6 +1,8 @@
 package com.projet2.platform.controller;
 
 import com.projet2.platform.entity.Game;
+import com.projet2.platform.entity.PatchHistory;
+import com.projet2.platform.repository.PatchHistoryRepository;
 import com.projet2.platform.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -68,6 +70,15 @@ public class GameController {
     public ResponseEntity<String> countGames() {
         long count = gameService.getAllGames().size();
         return ResponseEntity.ok("Nombre de jeux :" + count + "\n");
+    }
+
+    @Autowired
+    private PatchHistoryRepository patchHistoryRepo;
+
+    // Endpoint pour voir l'historique d'un jeu
+    @GetMapping("/{gameId}/patches")
+    public List<PatchHistory> getGamePatches(@PathVariable String gameId) {
+        return patchHistoryRepo.findByGameIdOrderByReleaseDateDesc(gameId);
     }
 
 }
