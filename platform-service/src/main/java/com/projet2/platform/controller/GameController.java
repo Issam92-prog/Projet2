@@ -1,8 +1,15 @@
 package com.projet2.platform.controller;
 
 import com.projet2.platform.entity.Game;
+import com.projet2.platform.entity.PatchHistory;
+import com.projet2.platform.repository.GameRepository;
+import com.projet2.platform.repository.PatchHistoryRepository;
 import com.projet2.platform.service.GameService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +25,9 @@ public class GameController {
 
     @Autowired
     private GameService gameService;
+
+    @Autowired
+    private GameRepository gameRepository;
 
     /**
      * GET /api/games
@@ -67,21 +77,32 @@ public class GameController {
     @GetMapping(value = "/count", produces = "text/plain")
     public ResponseEntity<String> countGames() {
         long count = gameService.getAllGames().size();
-        return ResponseEntity.ok("Nombre de jeux :" + count+ "\n");
+        return ResponseEntity.ok("Nombre de jeux :" + count + "\n");
     }
 
-    // POST /games/{id}/buy?userId=123&platform=PC
-    @PostMapping("/{id}/buy")
-    public ResponseEntity<?> buyGame(
-            @PathVariable String id,
-            @RequestParam String userId,
-            @RequestParam String platform) {
-        try {
-            Game game = gameService.buyGame(id, userId, platform);
-            return ResponseEntity.ok("Achat réussi pour " + game.getTitle() + " au prix de " + game.getCurrentPrice() + "€");
-        } catch (RuntimeException e) {
-            // Renvoie une erreur 400 Bad Request avec le message (ex: "Jeu non dispo sur PC")
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    @Autowired
+    private PatchHistoryRepository patchHistoryRepo;
+
+    // Endpoint pour voir l'historique d'un jeu
+    @GetMapping("/{gameId}/patches")
+    public List<PatchHistory> getGamePatches(@PathVariable String gameId) {
+        return patchHistoryRepo.findByGameIdOrderByReleaseDateDesc(gameId);
+    }
+
+    /**
+     * GET /api/games/catalog?page=0&size=20
+     * Récupère les jeux avec pagination et tri alphabétique
+     */
+    @GetMapping("/catalog")
+    public ResponseEntity<Page<Game>> getCatalog(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size
+    ) {
+        return ResponseEntity.ok(gameRepository.findAll(PageRequest.of(page, size, Sort.by("title").ascending())));
+    }
+
+    @GetMapping("/{gameId}/dlcs")
+    public ResponseEntity<List<Game>> getGameDLCs(@PathVariable String gameId) {
+        return ResponseEntity.ok(gameRepository.findByParentGameId(gameId));
     }
 }

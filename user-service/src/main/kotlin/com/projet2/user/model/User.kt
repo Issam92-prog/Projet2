@@ -26,8 +26,14 @@ data class User(
     @Column(nullable = false)
     val lastName: String,
 
+    @Column(nullable = false, unique = true)
+    val email: String,
+
     @Column(nullable = false)
     val birthDate: LocalDate,
+
+    @Column(nullable = false)
+    var password: String? = "",
 
     @Column(nullable = false)
     val createdAt: Instant = Instant.now()

@@ -2,11 +2,11 @@ package com.projet2.user.dto
 
 import java.time.LocalDate
 
-data class CreateUserRequest(
+data class RegisterRequest(
     val pseudo: String,
     val firstName: String,
     val lastName: String,
-    val email: String,
     val birthDate: LocalDate,
-    var password: String = ""
+    val email: String,
+    val password: String
 )
